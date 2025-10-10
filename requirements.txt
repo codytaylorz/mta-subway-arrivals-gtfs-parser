@@ -1,6 +1,2 @@
 #!/usr/bin/env bash
-
-Start the Flask application using Gunicorn.
-The format is: gunicorn -w <number_of_workers> -b 0.0.0.0:<port> <module_name>:<app_instance_name>
-We are using 2 workers, binding to port $PORT (Render's variable), and running the 'app' instance from 'main.py'.
 gunicorn -w 2 -b 0.0.0.0:$PORT main:app
