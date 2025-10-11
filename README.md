@@ -20,28 +20,28 @@ GET /transit/<stop_id>?line=<line_id>
 
 ### Parameters
 
-- `stop_id` (required): The MTA stop ID (e.g., `127N` for Times Square northbound)
+- `stop_id` (required): The MTA stop ID (e.g., `N02N` for 8 Avenue (N) northbound)
 - `line` (optional): The subway line to query (e.g., `1`, `A`, `L`). Defaults to `1`
 
 ### Example Request
 
 ```
-GET /transit/127N?line=1
+GET /transit/N02N?line=N
 ```
 
 ### Response Format
 
 ```json
 {
-  "stop_id": "127N",
-  "line": "1",
-  "timestamp": "2025-10-09T21:08:00.123456",
+  "stop_id": "N02N",
+  "line": "N",
+  "timestamp": "2025-01-01T12:00:00.000000",
   "arrivals": [
     {
-      "route": "1",
-      "destination": "Van Cortlandt Park - 242 St",
+      "route": "N",
+      "destination": "Astoria-Ditmars Blvd",
       "scheduled_arrival": null,
-      "actual_arrival": "2025-10-09T21:15:30",
+      "actual_arrival": "2025-01-01T12:05:00",
       "delay": null
     }
   ]
@@ -62,18 +62,29 @@ GET /transit/127N?line=1
 
 ## Available Lines
 
-`1`, `2`, `3`, `4`, `5`, `6`, `7`, `A`, `B`, `C`, `D`, `E`, `F`, `G`, `J`, `L`, `M`, `N`, `Q`, `R`, `S`, `W`, `Z`
+7th Avenue: 1, 2, 3
+Lexington Avenue: 4, 5, 6
+Flushing: 7
+8th Avenue: A, C, E
+6th Avenue: B, D, F, M
+Broadway: N, Q, R, W
+Nassau Street: J, Z
+Crosstown: G
+Canarsie: L
+Shuttles: GS (Grand Central Shuttle), H (Rockaway Park Shuttle), FS (Franklin Avenue Shuttle)
+Staten Island Railway (SIR): SI
 
 ## Finding Stop IDs
 
 Stop IDs can be found in the MTA's static GTFS data or by using tools like:
 - MTA's official website
 - Transit apps that display stop IDs
-- The MTA GTFS static feed
 
-Common stop ID patterns:
-- Northbound stops often end in `N`
-- Southbound stops often end in `S`
+Sttop ID patterns:
+- Northbound stops end in `N`
+- Southbound stops end in `S`
+
+TransitFeeds stops.txt file: https://openmobilitydata-data.s3-us-west-1.amazonaws.com/public/feeds/mta/79/20240103/original/stops.txt
 
 ## Technical Details
 
