@@ -62,17 +62,17 @@ GET /transit/N02N?line=N
 
 ## Available Lines
 
-7th Avenue: 1, 2, 3
-Lexington Avenue: 4, 5, 6
-Flushing: 7
-8th Avenue: A, C, E
-6th Avenue: B, D, F, M
-Broadway: N, Q, R, W
-Nassau Street: J, Z
-Crosstown: G
-Canarsie: L
-Shuttles: GS (Grand Central Shuttle), H (Rockaway Park Shuttle), FS (Franklin Avenue Shuttle)
-Staten Island Railway (SIR): SI
+  - 7th Avenue: 1, 2, 3
+  - Lexington Avenue: 4, 5, 6
+  - Flushing: 7
+  - 8th Avenue: A, C, E
+  - 6th Avenue: B, D, F, M
+  - Broadway: N, Q, R, W
+  - Nassau Street: J, Z
+  - Crosstown: G
+  - Canarsie: L
+  - Shuttles: GS (Grand Central Shuttle), H (Rockaway Park Shuttle), FS (Franklin Avenue Shuttle)
+  - Staten Island Railway (SIR): SI
 
 ## Finding Stop IDs
 
