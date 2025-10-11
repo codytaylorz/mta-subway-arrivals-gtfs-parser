@@ -80,7 +80,7 @@ Stop IDs can be found in the MTA's static GTFS data or by using tools like:
 - MTA's official website
 - Transit apps that display stop IDs
 
-Sttop ID patterns:
+Stop ID patterns:
 - Northbound stops end in `N`
 - Southbound stops end in `S`
 
