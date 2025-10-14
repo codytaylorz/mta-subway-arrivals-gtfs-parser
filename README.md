@@ -114,3 +114,4 @@ If an error occurs, the API returns:
 - Feed updates occur approximately every 30 seconds
 - Up to 10 upcoming arrivals are returned per request
 - If a trip doesn't appear in the feed, it may be cancelled
+- The suggested deployment app to run this Flask application is the Render Cloud Application Platform (https://www.render.com)
