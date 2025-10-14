@@ -1,6 +1,6 @@
 # MTA GTFS Transit Data API
 
-A Python Flask application that parses MTA GTFS realtime data and provides a publicly accessible JSON feed with train arrival information.
+A Python Flask application that parses MTA subway GTFS realtime data and provides a publicly accessible JSON feed with subway  arrival information.
 
 ## Features
 
