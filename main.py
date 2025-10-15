@@ -137,7 +137,7 @@ def get_transit_data(stop_id):
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'MTA GTFS Transit Data API',
+        'message': 'MTA Subway GTFS Parser API',
         'usage': '/transit/<stop_id>?line=<line_id>',
         'example': '/transit/127N?line=1',
         'available_lines': ['1', '2', '3', '4', '5', '6', '7', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'J', 'L', 'M', 'N', 'Q', 'R', 'S', 'W', 'Z']
