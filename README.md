@@ -1,4 +1,4 @@
-# MTA GTFS Transit Data API
+# MTA Subway GTFS Parser API
 
 A Python Flask application that parses MTA subway GTFS realtime data and provides a publicly accessible JSON feed with subway  arrival information.
 
@@ -7,7 +7,7 @@ A Python Flask application that parses MTA subway GTFS realtime data and provide
 - Parse MTA GTFS realtime data for any NYC subway stop
 - Extract route, destination, and arrival times
 - Serve data as JSON via HTTP endpoint
-- No API key required for subway feeds
+- Free API key required for subway feeds
 - Support for all NYC subway lines
 
 ## Usage
@@ -73,6 +73,10 @@ GET /transit/N02N?line=N
   - Canarsie: L
   - Shuttles: GS (Grand Central Shuttle), H (Rockaway Park Shuttle), FS (Franklin Avenue Shuttle)
   - Staten Island Railway (SIR): SI
+
+## Getting an API Key
+
+Go to the MTA BusTime Developer Site (https://bustime.mta.info/wiki/Developers/Index) and click on the link to request an API key (https://register.developer.obanyc.com). The key should arrive in your email in about 30 minutes, and should be a combination of letters and numbers seperated by hyphens (dashes). You can use this key for all MTA BusTime and GTFS-RT feeds.
 
 ## Finding Stop IDs
 
