@@ -211,7 +211,7 @@ def get_transit_info(stop_id):
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'MTA Subway GTFS Real-Time Parser (with Delay)',
+        'message': 'MTA Subway Arrivals GTFS Parser',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
         'example': '/transit/N02N?line=N',
         'available_lines': ['1', '2', '3', '4', '5', '6', '7', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'J', 'L', 'M', 'N', 'Q', 'R', 'S', 'W', 'Z']
