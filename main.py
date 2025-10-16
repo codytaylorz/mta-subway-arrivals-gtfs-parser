@@ -95,9 +95,10 @@ def get_transit_data(stop_id):
         if not MTA_API_KEY:
              return jsonify({'error': 'Configuration Error', 'message': 'MTA_API_KEY environment variable is not set.'}), 500
 
-        # NOTE: This line was the cause of the "unexpected keyword argument 'api_key'" error later
-        feed = NYCTFeed(line, api_key=MTA_API_KEY)
+        # --- FIX APPLIED HERE: Removed 'api_key=MTA_API_KEY' argument to resolve TypeError ---
+        feed = NYCTFeed(line)
         feed.refresh()
+        # -----------------------------------------------------------------------------------
         
         arrivals = []
         ny_tz = pytz.timezone('America/New_York')
@@ -163,7 +164,7 @@ def index():
     return jsonify({
         'message': 'MTA Subway GTFS Parser API',
         'usage': '/transit/<stop_id>?line=<line_id>',
-        'example': '/transit/N02N?line=N',
+        'example': '/transit/127N?line=1',
         'available_lines': ['1', '2', '3', '4', '5', '6', '7', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'J', 'L', 'M', 'N', 'Q', 'R', 'S', 'W', 'Z']
     })
 
