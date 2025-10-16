@@ -9,6 +9,7 @@ import pandas as pd
 import os
 from functools import lru_cache
 import pytz
+from datetime import timezone
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ def get_transit_data(stop_id):
         if not MTA_API_KEY:
              return jsonify({'error': 'Configuration Error', 'message': 'MTA_API_KEY environment variable is not set.'}), 500
 
-        # Fetch real-time feed using NYCTFeed
+        # NOTE: This line was the cause of the "unexpected keyword argument 'api_key'" error later
         feed = NYCTFeed(line, api_key=MTA_API_KEY)
         feed.refresh()
         
