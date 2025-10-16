@@ -3,6 +3,7 @@ from nyct_gtfs import NYCTFeed
 from datetime import datetime, timedelta
 import logging
 import requests
+import httpx
 import zipfile
 import io
 import pandas as pd
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Configuration for static GTFS files
-GTFS_URL = 'http://web.mta.info/developers/data/nyct/subway/google_transit.zip'
+# Configuration for static GTFS files (use HTTPS for Render compatibility)
+GTFS_URL = 'https://web.mta.info/developers/data/nyct/subway/google_transit.zip'
 NY_TZ = pytz.timezone('America/New_York')
 
 # Global variables for caching static dataframes
@@ -142,71 +143,127 @@ def get_transit_info(stop_id):
     if not MTA_API_KEY:
         return jsonify({'error': 'Configuration Error', 'message': 'MTA_API_KEY environment variable is not set.'}), 500
 
+    # 1. Fetch Real-Time Data with robust error handling
     try:
-        # 1. Fetch Real-Time Data (Fixed: removed api_key argument)
         feed = NYCTFeed(route_id)
         feed.refresh()
-        
-        # 2. Parse Arrivals
+    except requests.exceptions.HTTPError as e:
+        status = getattr(e.response, 'status_code', None)
+        logger.error(f"MTA API HTTP error ({status}) for route {route_id}: {e}")
+        return jsonify({
+            'error': 'MTA API Error',
+            'message': 'Upstream MTA GTFS feed returned an HTTP error. Check API key and route.'
+        }), 503
+    except httpx.HTTPStatusError as e:
+        status = getattr(e.response, 'status_code', None)
+        logger.error(f"MTA API HTTP status error via httpx ({status}) for route {route_id}: {e}")
+        return jsonify({
+            'error': 'MTA API Error',
+            'message': 'Upstream MTA GTFS feed returned an HTTP error. Check API key and route.'
+        }), 503
+    except requests.exceptions.Timeout:
+        logger.error("MTA API timeout while refreshing feed")
+        return jsonify({
+            'error': 'MTA API Timeout',
+            'message': 'Upstream MTA GTFS feed timed out. Please retry.'
+        }), 504
+    except httpx.TimeoutException:
+        logger.error("MTA API timeout via httpx while refreshing feed")
+        return jsonify({
+            'error': 'MTA API Timeout',
+            'message': 'Upstream MTA GTFS feed timed out. Please retry.'
+        }), 504
+    except requests.exceptions.RequestException as e:
+        logger.error(f"MTA API request error: {e}")
+        return jsonify({
+            'error': 'MTA API Unavailable',
+            'message': 'Could not reach MTA GTFS feed. Please try again later.'
+        }), 503
+    except httpx.RequestError as e:
+        logger.error(f"MTA API httpx request error: {e}")
+        return jsonify({
+            'error': 'MTA API Unavailable',
+            'message': 'Could not reach MTA GTFS feed. Please try again later.'
+        }), 503
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching MTA feed: {e}", exc_info=True)
+        return jsonify({
+            'error': 'MTA API Error',
+            'message': 'Unexpected error while contacting MTA GTFS feed.'
+        }), 500
+
+    # 2. Parse Arrivals
+    try:
         arrivals = feed.filter_stop_info(stop_id)
-        
-        # 3. Process and Format
-        formatted_arrivals = []
-        now = datetime.now(NY_TZ)
-        
-        for arrival in arrivals:
-            
-            # NYCTFeed returns UTC time, convert to NY time for display
-            arrival_time_utc = datetime.fromtimestamp(arrival['time'], tz=timezone.utc)
+    except Exception as e:
+        logger.error(f"Failed to filter stop info for stop {stop_id}: {e}", exc_info=True)
+        return jsonify({
+            'error': 'Processing Error',
+            'message': 'Failed to parse arrivals from the MTA feed.'
+        }), 500
+
+    # 3. Process and Format
+    formatted_arrivals = []
+    now = datetime.now(NY_TZ)
+
+    for arrival in arrivals:
+        try:
+            epoch_time = arrival.get('time')
+            if epoch_time is None:
+                continue
+
+            arrival_time_utc = datetime.fromtimestamp(epoch_time, tz=timezone.utc)
             actual_arrival_time_ny = arrival_time_utc.astimezone(NY_TZ)
-            
             countdown_minutes = max(0, int((actual_arrival_time_ny - now).total_seconds() / 60))
-            
-            scheduled_time = get_scheduled_time(arrival['trip_id'], stop_id)
+
+            # Be defensive about keys from nyct-gtfs
+            route_val = arrival.get('route_id') or arrival.get('route')
+            destination_val = (
+                arrival.get('destination')
+                or arrival.get('headsign')
+                or arrival.get('headsign_text')
+                or 'Unknown'
+            )
+            trip_id_val = arrival.get('trip_id') or arrival.get('gtfs_trip_id')
+
+            scheduled_time = get_scheduled_time(trip_id_val, stop_id) if trip_id_val else None
             delay = None
             scheduled_arrival_str = None
 
-            # --- Delay Calculation Logic ---
             if scheduled_time:
                 scheduled_arrival_str = scheduled_time.strftime('%I:%M %p')
-                
-                # Calculate difference between actual (real-time) and scheduled time
                 delay_seconds = int((actual_arrival_time_ny - scheduled_time).total_seconds())
-                
-                if delay_seconds >= 90: # 1.5 minutes late threshold
+                if delay_seconds >= 90:
                     delay = f"{delay_seconds // 60} min late"
-                elif delay_seconds <= -90: # 1.5 minutes early threshold
+                elif delay_seconds <= -90:
                     delay = f"{abs(delay_seconds) // 60} min early"
                 else:
                     delay = "On time"
-            # -------------------------------
-            
+
             formatted_arrivals.append({
-                'route_id': arrival['route_id'],
-                'destination': arrival['destination'],
+                'route_id': route_val,
+                'destination': destination_val,
                 'actual_arrival_time_ny': actual_arrival_time_ny.strftime('%I:%M %p'),
                 'countdown_minutes': countdown_minutes,
-                'scheduled_arrival_ny': scheduled_arrival_str, # ADDED
-                'delay': delay # ADDED
+                'scheduled_arrival_ny': scheduled_arrival_str,
+                'delay': delay,
+                '_sort': int(actual_arrival_time_ny.timestamp())
             })
-            
-        # 4. Sort by actual arrival time and build final response
-        formatted_arrivals.sort(key=lambda x: x['actual_arrival_time_ny'])
+        except Exception as e:
+            logger.warning(f"Skipping malformed arrival entry: {e}")
 
-        response = {
-            'stop_id': stop_id,
-            'timestamp_ny': now.strftime('%Y-%m-%d %I:%M:%S %p'),
-            'arrivals': formatted_arrivals
-        }
+    # 4. Sort by actual arrival time and build final response
+    formatted_arrivals.sort(key=lambda x: x.get('_sort', 0))
+    for item in formatted_arrivals:
+        item.pop('_sort', None)
 
-        return jsonify(response)
-    
-    except Exception as e:
-        logger.error(f"Error fetching transit data for stop {stop_id}: {e}", exc_info=True)
-        return jsonify({
-            'error': 'Failed to fetch transit data',
-            'message': 'An unexpected error occurred during real-time processing.'
-        }), 500
+    response = {
+        'stop_id': stop_id,
+        'timestamp_ny': now.strftime('%Y-%m-%d %I:%M:%S %p'),
+        'arrivals': formatted_arrivals
+    }
+
+    return jsonify(response)
 
 @app.route('/')
 def index():
@@ -216,6 +273,14 @@ def index():
         'example': '/transit/N02N?line=N',
         'available_lines': ['1', '2', '3', '4', '5', '6', '7', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'J', 'L', 'M', 'N', 'Q', 'R', 'S', 'W', 'Z']
     })
+
+@app.route('/health')
+def health():
+    try:
+        static_loaded = STOP_TIMES_DF is not None and TRIPS_DF is not None
+        return jsonify({'status': 'ok', 'static_data_loaded': static_loaded}), 200
+    except Exception:
+        return jsonify({'status': 'error'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

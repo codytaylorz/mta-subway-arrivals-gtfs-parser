@@ -7,7 +7,7 @@ A Python Flask application that parses MTA subway GTFS realtime data and provide
 - Parse MTA GTFS realtime data for any NYC subway stop
 - Extract route, destination, and arrival times
 - Serve data as JSON via HTTP endpoint
-- No API key required for subway feeds
+- Requires `MTA_API_KEY` env var on Render (set in Dashboard)
 - Support for all NYC subway lines
 
 ## Usage
@@ -95,7 +95,12 @@ TransitFeeds stops.txt file: https://openmobilitydata-data.s3-us-west-1.amazonaw
 
 ## Running the Application
 
-The application starts automatically and is accessible at the provided URL.
+On Render, configure a Web Service with:
+
+- Build command: `pip install -r requirements.txt`
+- Start command: `bash start.sh`
+- Environment variable: `MTA_API_KEY` (from MTA Developer Portal)
+- Health check path: `/health`
 
 ## Error Handling
 
