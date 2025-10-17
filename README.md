@@ -33,16 +33,16 @@ GET /transit/N02N?line=N
 
 ```json
 {
-  "stop_id": "N02N",
   "line": "N",
-  "timestamp": "2025-01-01T12:00:00.000000",
+  "stop_id": "N02N",
+  "timestamp": "2000-01-01T12:00:00.000000",
   "arrivals": [
     {
-      "route": "N",
-      "destination": "Astoria-Ditmars Blvd",
       "scheduled_arrival": null,
-      "actual_arrival": "2025-01-01T12:05:00",
-      "delay": null
+      "destination": "Astoria-Ditmars Blvd",
+      "delay": null,
+      "route": "N",
+      "actual_arrival": "2000-01-01T12:05:00"
     }
   ]
 }
