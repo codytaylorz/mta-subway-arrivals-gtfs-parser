@@ -38,7 +38,6 @@ GET /transit/N02N?line=N
   "timestamp": "2000-01-01T12:00:00.000000",
   "arrivals": [
     {
-      "scheduled_arrival": null,
       "destination": "Astoria-Ditmars Blvd",
       "delay": null,
       "route": "N",
