@@ -110,7 +110,6 @@ def get_transit_data(stop_id):
                         'route': trip.route_id,
                         'destination': trip.headsign_text or 'Unknown',
                         'actual_arrival': actual_arrival_time.isoformat() if actual_arrival_time else None,
-                        'delay': delay
                     }
                     
                     arrivals.append(arrival_data)
