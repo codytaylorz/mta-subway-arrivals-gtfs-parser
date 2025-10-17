@@ -109,7 +109,6 @@ def get_transit_data(stop_id):
                     arrival_data = {
                         'route': trip.route_id,
                         'destination': trip.headsign_text or 'Unknown',
-                        'scheduled_arrival': scheduled_time.isoformat() if scheduled_time else None,
                         'actual_arrival': actual_arrival_time.isoformat() if actual_arrival_time else None,
                         'delay': delay
                     }
