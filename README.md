@@ -55,9 +55,7 @@ GET /transit/N02N?line=N
 - `arrivals`: Array of upcoming trains (up to 10)
   - `route`: The train route number/letter
   - `destination`: Where the train is heading
-  - `scheduled_arrival`: Scheduled arrival time from timetable (ISO 8601 format)
   - `actual_arrival`: Realtime predicted arrival time (ISO 8601 format)
-  - `delay`: Delay information (e.g., "5 min late", "On time", "2 min early")
 
 ## Available Lines
 
