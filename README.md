@@ -40,6 +40,12 @@ GET /transit/N02N?line=N
       "route": "N",
       "actual_arrival": "2000-01-01T12:05:00"
     }
+    {
+      "destination": "Astoria-Ditmars Blvd",
+      "delay": null,
+      "route": "N",
+      "actual_arrival": "2000-01-01T12:15:00"
+     }
   ]
   "line": "N",
   "stop_id": "N02N",
