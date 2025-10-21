@@ -33,9 +33,6 @@ GET /transit/N02N?line=N
 
 ```json
 {
-  "line": "N",
-  "stop_id": "N02N",
-  "timestamp": "2000-01-01T12:00:00.000000",
   "arrivals": [
     {
       "destination": "Astoria-Ditmars Blvd",
@@ -44,6 +41,9 @@ GET /transit/N02N?line=N
       "actual_arrival": "2000-01-01T12:05:00"
     }
   ]
+  "line": "N",
+  "stop_id": "N02N",
+  "timestamp": "2000-01-01T12:00:00.000000",
 }
 ```
 
