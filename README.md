@@ -56,7 +56,7 @@ GET /transit/N02N?line=N
 ### Response Fields
 
 - `stop_id`: The requested stop ID
-- `line`: The subway line queried; is only used to filter out arrivals for a specific trunk line (trunk lines listed above)
+- `line`: The subway line queried; is only used to filter out arrivals for a specific trunk line (trunk lines listed below)
 - `timestamp`: When the data was fetched
 - `arrivals`: Array of upcoming trains (up to 10)
   - `route`: The train route number/letter
