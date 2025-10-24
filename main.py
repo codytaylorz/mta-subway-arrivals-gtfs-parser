@@ -137,18 +137,19 @@ def get_transit_data(stop_id):
         formatted_arrivals = []
         now_ny = datetime.now(NY_TZ)
         
-        # --- FIXED: Manual Iteration Loop (To avoid 'filter_stop_info' error) ---
         for trip in feed.trips:
             for stop_time_update in trip.stop_time_updates:
                 if stop_time_update.stop_id == stop_id:
                     
                     actual_arrival_time = None
-                    # Use arrival time if available, otherwise use departure time
-                    if stop_time_update.arrival and stop_time_update.arrival.time:
-                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.arrival.time, tz=timezone.utc)
-                    elif stop_time_update.departure and stop_time_update.departure.time:
-                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.departure.time, tz=timezone.utc)
                     
+                    # --- FIX APPLIED HERE: Calling .time() as a function ---
+                    if stop_time_update.arrival and hasattr(stop_time_update.arrival, 'time'):
+                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.arrival.time(), tz=timezone.utc)
+                    elif stop_time_update.departure and hasattr(stop_time_update.departure, 'time'):
+                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.departure.time(), tz=timezone.utc)
+                    # -----------------------------------------------------
+
                     if not actual_arrival_time:
                         continue # Skip if no actual time is available
                         
@@ -181,7 +182,6 @@ def get_transit_data(stop_id):
                         'scheduled_arrival_ny': scheduled_arrival_str,
                         'delay': delay
                     })
-        # --- END FIXED ITERATION ---
             
         formatted_arrivals.sort(key=lambda x: x['actual_arrival_time_ny'])
 
