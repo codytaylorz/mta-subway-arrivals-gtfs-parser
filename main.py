@@ -84,6 +84,7 @@ def get_scheduled_time(trip_id, stop_id):
             hours, minutes, seconds = map(int, arrival_time_str.split(':'))
             today = datetime.now(NY_TZ).date()
             
+            # Handle times that roll past midnight (e.g., 25:00:00)
             if hours >= 24:
                 hours -= 24
                 today += timedelta(days=1)
@@ -106,7 +107,7 @@ def get_transit_data(stop_id):
     line = request.args.get('line', '1').upper()
     
     if not line:
-        return jsonify({'error': 'Missing required query parameter: line=<route_id>'}), 400
+        return jsonify({'error': 'Missing required query parameter', 'message': 'Please provide line=<route_id>.'}), 400
 
     if not MTA_API_KEY:
         return jsonify({'error': 'Configuration Error', 'message': 'MTA_API_KEY environment variable is not set.'}), 500
@@ -126,51 +127,61 @@ def get_transit_data(stop_id):
     # Check if static data is loaded before attempting delay calculation
     if STOP_TIMES_DF is None:
         logger.error("Static schedule data is not available. Delay calculation will fail.")
-        # We can still proceed without delay, but we'll return an error if the feed fails below.
+
 
     try:
         # 2. Fetch Real-Time Data (Cache Miss)
         feed = NYCTFeed(line)
         feed.refresh()
         
-        arrivals = feed.filter_stop_info(stop_id)
-        
         formatted_arrivals = []
         now_ny = datetime.now(NY_TZ)
         
-        for arrival in arrivals:
-            
-            # Convert feed timestamp (UTC) to NY Timezone
-            arrival_time_utc = datetime.fromtimestamp(arrival['time'], tz=timezone.utc)
-            actual_arrival_time_ny = arrival_time_utc.astimezone(NY_TZ)
-            
-            countdown_minutes = max(0, int((actual_arrival_time_ny - now_ny).total_seconds() / 60))
-            
-            scheduled_time = get_scheduled_time(arrival['trip_id'], stop_id)
-            delay = None
-            scheduled_arrival_str = None
+        # --- FIXED: Manual Iteration Loop (To avoid 'filter_stop_info' error) ---
+        for trip in feed.trips:
+            for stop_time_update in trip.stop_time_updates:
+                if stop_time_update.stop_id == stop_id:
+                    
+                    actual_arrival_time = None
+                    # Use arrival time if available, otherwise use departure time
+                    if stop_time_update.arrival and stop_time_update.arrival.time:
+                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.arrival.time, tz=timezone.utc)
+                    elif stop_time_update.departure and stop_time_update.departure.time:
+                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.departure.time, tz=timezone.utc)
+                    
+                    if not actual_arrival_time:
+                        continue # Skip if no actual time is available
+                        
+                    actual_arrival_time_ny = actual_arrival_time.astimezone(NY_TZ)
+                    
+                    countdown_minutes = max(0, int((actual_arrival_time_ny - now_ny).total_seconds() / 60))
+                    
+                    scheduled_time = get_scheduled_time(trip.trip_id, stop_id)
+                    delay = None
+                    scheduled_arrival_str = None
 
-            # --- Delay Calculation Logic ---
-            if scheduled_time:
-                scheduled_arrival_str = scheduled_time.strftime('%I:%M %p')
-                delay_seconds = int((actual_arrival_time_ny - scheduled_time).total_seconds())
-                
-                if delay_seconds >= 60:
-                    delay = f"{delay_seconds // 60} min late"
-                elif delay_seconds <= -60:
-                    delay = f"{abs(delay_seconds) // 60} min early"
-                else:
-                    delay = "On time"
-            # -------------------------------
-            
-            formatted_arrivals.append({
-                'route_id': arrival['route_id'],
-                'destination': arrival['destination'],
-                'actual_arrival_time_ny': actual_arrival_time_ny.strftime('%I:%M %p'),
-                'countdown_minutes': countdown_minutes,
-                'scheduled_arrival_ny': scheduled_arrival_str,
-                'delay': delay
-            })
+                    # --- Delay Calculation Logic ---
+                    if scheduled_time:
+                        scheduled_arrival_str = scheduled_time.strftime('%I:%M %p')
+                        delay_seconds = int((actual_arrival_time_ny - scheduled_time).total_seconds())
+                        
+                        if delay_seconds >= 60:
+                            delay = f"{delay_seconds // 60} min late"
+                        elif delay_seconds <= -60:
+                            delay = f"{abs(delay_seconds) // 60} min early"
+                        else:
+                            delay = "On time"
+                    # -------------------------------
+                    
+                    formatted_arrivals.append({
+                        'route_id': trip.route_id,
+                        'destination': trip.headsign_text,
+                        'actual_arrival_time_ny': actual_arrival_time_ny.strftime('%I:%M %p'),
+                        'countdown_minutes': countdown_minutes,
+                        'scheduled_arrival_ny': scheduled_arrival_str,
+                        'delay': delay
+                    })
+        # --- END FIXED ITERATION ---
             
         formatted_arrivals.sort(key=lambda x: x['actual_arrival_time_ny'])
 
@@ -196,16 +207,17 @@ def get_transit_data(stop_id):
             'message': 'Failed to fetch real-time data from MTA (check API key validity or network status).'
         }), 503
     except Exception as e:
+        # Catch all other errors
         logger.error(f"General runtime error fetching transit data for stop {stop_id}: {e}", exc_info=True)
         return jsonify({
             'error': 'Failed to fetch transit data',
-            'message': 'A general error occurred. Check server logs for details.'
+            'message': 'A general error occurred during real-time processing. Check server logs for details.'
         }), 500
 
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'MTA Subway GTFS Real-Time Parser (Cached and Stabilized)',
+        'message': 'MTA Subway Arrivals GTFS Parser',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
         'example': 'To get N-trains at Astoria Blvd (N02N): /transit/N02N?line=N',
         'caching': 'Responses are cached for 30 seconds per unique stop/line combination.',
