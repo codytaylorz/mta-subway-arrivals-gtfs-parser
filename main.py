@@ -25,7 +25,7 @@ NY_TZ = pytz.timezone('America/New_York')
 STOP_TIMES_DF = None
 TRIPS_DF = None
 
-# Global cache for API responses (Key: "STOPID-LINE", Value: {'timestamp': datetime, 'response': dict})
+# Global cache for API responses
 API_RESPONSE_CACHE = {}
 CACHE_DURATION_SECONDS = 30
 
@@ -143,16 +143,19 @@ def get_transit_data(stop_id):
                     
                     actual_arrival_time = None
                     
-                    # --- FIX APPLIED HERE: Calling .time() as a function ---
-                    if stop_time_update.arrival and hasattr(stop_time_update.arrival, 'time'):
-                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.arrival.time(), tz=timezone.utc)
-                    elif stop_time_update.departure and hasattr(stop_time_update.departure, 'time'):
-                        actual_arrival_time = datetime.fromtimestamp(stop_time_update.departure.time(), tz=timezone.utc)
+                    # --- FIX APPLIED HERE: Use the datetime object directly ---
+                    # The library returns a full datetime object, not a timestamp
+                    if stop_time_update.arrival:
+                        actual_arrival_time = stop_time_update.arrival 
+                    elif stop_time_update.departure:
+                        actual_arrival_time = stop_time_update.departure
                     # -----------------------------------------------------
 
                     if not actual_arrival_time:
                         continue # Skip if no actual time is available
                         
+                    # The object from nyct-gtfs is already timezone-aware (UTC),
+                    # so we just need to convert it to NY time.
                     actual_arrival_time_ny = actual_arrival_time.astimezone(NY_TZ)
                     
                     countdown_minutes = max(0, int((actual_arrival_time_ny - now_ny).total_seconds() / 60))
@@ -217,7 +220,7 @@ def get_transit_data(stop_id):
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'MTA Subway Arrivals GTFS Parser',
+        'message': 'MTA Subway GTFS Real-Time Parser (Cached and Stabilized)',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
         'example': 'To get N-trains at Astoria Blvd (N02N): /transit/N02N?line=N',
         'caching': 'Responses are cached for 30 seconds per unique stop/line combination.',
