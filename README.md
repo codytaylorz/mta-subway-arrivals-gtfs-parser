@@ -93,13 +93,17 @@ Stop ID patterns:
 
 TransitFeeds stops.txt file: https://openmobilitydata-data.s3-us-west-1.amazonaws.com/public/feeds/mta/79/20240103/original/stops.txt
 
+## Caching
+
+Responses are cached for 30 seconds per unique stop/line combination. If you make the same request within this window, the cached result is returned instantly.
+
 ## Technical Details
 
 - Built with Flask
 - Uses the `nyct-gtfs` library for parsing MTA realtime feeds
 - Runs on port 5000
 - No API key required for NYC subway data
-
+- 
 ## Running the Application
 
 The application starts automatically and is accessible at the provided URL.
@@ -118,7 +122,7 @@ If an error occurs, the API returns:
 ## Notes
 
 - Data is fetched in real-time from MTA feeds
-- Feed updates occur approximately every 30 seconds
+- Data is cached for up to 30 seconds
 - Up to 10 upcoming arrivals are returned per request
 - Arrival times are in UTC (Coordinated Universal Time)
 - If a trip doesn't appear in the feed, it may be cancelled
