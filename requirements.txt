@@ -1,5 +1,5 @@
 flask
-nyct-gtfs
+git+https://github.com/codytaylorz/nyct-gtfs.git#egg=nyct-gtfs
 requests
 pandas
 pytz
