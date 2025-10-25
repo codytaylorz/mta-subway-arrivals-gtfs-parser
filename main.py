@@ -143,19 +143,16 @@ def get_transit_data(stop_id):
                     
                     actual_arrival_time = None
                     
-                    # --- FIX APPLIED HERE: Use the datetime object directly ---
-                    # The library returns a full datetime object, not a timestamp
+                    # FIX: Use the datetime object directly as provided by nyct-gtfs
                     if stop_time_update.arrival:
                         actual_arrival_time = stop_time_update.arrival 
                     elif stop_time_update.departure:
                         actual_arrival_time = stop_time_update.departure
-                    # -----------------------------------------------------
 
                     if not actual_arrival_time:
                         continue # Skip if no actual time is available
                         
-                    # The object from nyct-gtfs is already timezone-aware (UTC),
-                    # so we just need to convert it to NY time.
+                    # The object from nyct-gtfs is already UTC, convert to NY time.
                     actual_arrival_time_ny = actual_arrival_time.astimezone(NY_TZ)
                     
                     countdown_minutes = max(0, int((actual_arrival_time_ny - now_ny).total_seconds() / 60))
@@ -220,7 +217,7 @@ def get_transit_data(stop_id):
 @app.route('/')
 def index():
     return jsonify({
-        'message': 'MTA Subway GTFS Real-Time Parser (Cached and Stabilized)',
+        'message': 'MTA Subway Arrivals GTFS Parser',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
         'example': 'To get N trains at 8 Ave (N02N): /transit/N02N?line=N',
         'available_routes': [
