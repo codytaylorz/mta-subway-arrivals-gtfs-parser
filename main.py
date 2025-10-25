@@ -131,6 +131,10 @@ def get_transit_data(stop_id):
 
     try:
         # 2. Fetch Real-Time Data (Cache Miss)
+        
+        # We now rely on the custom-installed 'nyct-gtfs' package 
+        # (via requirements.txt) to use the correct feed URL for all lines, 
+        # including the FS shuttle.
         feed = NYCTFeed(line)
         feed.refresh()
         
@@ -143,7 +147,7 @@ def get_transit_data(stop_id):
                     
                     actual_arrival_time = None
                     
-                    # FIX: Use the datetime object directly as provided by nyct-gtfs
+                    # Use the datetime object directly as provided by nyct-gtfs
                     if stop_time_update.arrival:
                         actual_arrival_time = stop_time_update.arrival 
                     elif stop_time_update.departure:
@@ -216,6 +220,7 @@ def get_transit_data(stop_id):
 
 @app.route('/')
 def index():
+    # This function provides documentation for the API root endpoint
     return jsonify({
         'message': 'MTA Subway Arrivals GTFS Parser',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
