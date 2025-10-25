@@ -248,7 +248,7 @@ def index():
             'L',
             'GS',
             'FS',
-            'H'
+            'H',
         ]
         'caching': 'Responses are cached for 30 seconds per unique stop/line combination.',
         'required_api_key': 'MTA_API_KEY environment variable'
