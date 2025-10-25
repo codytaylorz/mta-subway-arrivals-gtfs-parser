@@ -222,7 +222,34 @@ def index():
     return jsonify({
         'message': 'MTA Subway GTFS Real-Time Parser (Cached and Stabilized)',
         'usage': 'GET /transit/<stop_id>?line=<route_id>',
-        'example': 'To get N-trains at Astoria Blvd (N02N): /transit/N02N?line=N',
+        'example': 'To get N trains at 8 Ave (N02N): /transit/N02N?line=N',
+        'available_routes': [
+            '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            'A',
+            'C',
+            'E',
+            'B',
+            'D',
+            'F',
+            'M',
+            'N',
+            'Q',
+            'R',
+            'W',
+            'J',
+            'Z',
+            'G',
+            'L',
+            'GS',
+            'FS',
+            'H'
+        ]
         'caching': 'Responses are cached for 30 seconds per unique stop/line combination.',
         'required_api_key': 'MTA_API_KEY environment variable'
     })
