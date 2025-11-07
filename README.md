@@ -95,7 +95,7 @@ TransitFeeds stops.txt file: https://openmobilitydata-data.s3-us-west-1.amazonaw
 
 ## Caching
 
-Responses are cached for 30 seconds per unique stop/line combination. If you make the same request within this window, the cached result is returned instantly.
+Responses are cached for 60 seconds per unique stop/line combination. If you make the same request within this window, the cached result is returned instantly.
 
 ## Technical Details
 
@@ -122,7 +122,7 @@ If an error occurs, the API returns:
 ## Notes
 
 - Data is fetched in real-time from MTA feeds
-- Data is cached for up to 30 seconds
+- Data is cached for up to 60 seconds
 - Up to 10 upcoming arrivals are returned per request
 - Arrival times are in UTC (Coordinated Universal Time)
 - If a trip doesn't appear in the feed, it may be cancelled
