@@ -27,7 +27,7 @@ TRIPS_DF = None
 
 # Global cache for API responses
 API_RESPONSE_CACHE = {}
-CACHE_DURATION_SECONDS = 30
+CACHE_DURATION_SECONDS = 60
 
 # Fetch MTA API Key from environment variables
 MTA_API_KEY = os.environ.get("MTA_API_KEY")
@@ -251,8 +251,9 @@ def index():
             'GS',
             'FS',
             'H',
+            "SI"
         ],
-        'caching': 'Responses are cached for 30 seconds per unique stop/line combination.',
+        'caching': 'Responses are cached for 60 seconds per unique stop/line combination.',
         'required_api_key': 'MTA_API_KEY environment variable'
     })
 
