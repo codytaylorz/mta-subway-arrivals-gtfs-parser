@@ -103,7 +103,7 @@ Responses are cached for 60 seconds per unique stop/line combination. If you mak
 - Uses the `nyct-gtfs` library for parsing MTA realtime feeds
 - Runs on port 5000
 - No API key required for NYC subway data
-- 
+
 ## Running the Application
 
 The application starts automatically and is accessible at the provided URL.
