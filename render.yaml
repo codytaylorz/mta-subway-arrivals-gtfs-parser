@@ -1,0 +1,19 @@
+# Exported from Render on 2025-11-10T21:28:11Z
+version: "1"
+projects:
+- name: MTA
+  environments:
+  - name: MTA
+    services:
+    - type: web
+      name: mta-subway-arrivals-gtfs-parser
+      runtime: python
+      repo: https://github.com/codytaylorz/mta-subway-arrivals-gtfs-parser
+      plan: free
+      envVars:
+      - key: MTA_API_KEY
+        sync: false
+      region: virginia
+      buildCommand: pip install -r requirements.txt
+      startCommand: ./start.sh
+      autoDeployTrigger: commit
